@@ -10,6 +10,7 @@ import '../models/investment.dart';
 import '../theme/app_theme.dart';
 import 'investment_form_screen.dart';
 import 'widgets/common.dart';
+import 'widgets/returns_card.dart';
 
 class InvestmentDetailScreen extends ConsumerWidget {
   const InvestmentDetailScreen({super.key, required this.investmentId});
@@ -123,6 +124,10 @@ class InvestmentDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
+          if (!inv.isClosed) ...[
+            const SizedBox(height: 14),
+            ReturnsCard(items: [inv], single: true),
+          ],
           const SizedBox(height: 14),
           switch (inv.type.kind) {
             ValuationKind.market => _MarketDetails(

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import '../core/dates.dart';
 import '../models/ais.dart';
 import '../models/investment.dart';
 import '../models/member.dart';
+import '../models/snapshot.dart';
 
 /// Storage for one signed-in account. Everything lives under
 /// `users/{uid}/members` and `users/{uid}/investments`.
@@ -31,6 +33,12 @@ abstract class Repository {
   /// member and year.
   Future<void> saveAisStatement(AisStatement statement);
   Future<void> deleteAisStatement(String docId);
+
+  /// Saves the day's value snapshot, replacing an earlier one that day.
+  Future<void> saveSnapshot(ValueSnapshot snapshot);
+
+  /// The latest snapshot on or before [date], or null if there is none.
+  Future<ValueSnapshot?> snapshotOnOrBefore(DateTime date);
 }
 
 /// Firestore writes finish when the server confirms them, which can take a
@@ -52,6 +60,31 @@ class FirestoreRepository implements Repository {
       _db.collection('users').doc(uid).collection('investments');
   CollectionReference<Map<String, dynamic>> get _ais =>
       _db.collection('users').doc(uid).collection('ais');
+  CollectionReference<Map<String, dynamic>> get _snapshots =>
+      _db.collection('users').doc(uid).collection('snapshots');
+
+  @override
+  Future<void> saveSnapshot(ValueSnapshot snapshot) async {
+    _fire(_snapshots.doc(snapshot.docId).set(snapshot.toMap()));
+  }
+
+  @override
+  Future<ValueSnapshot?> snapshotOnOrBefore(DateTime date) async {
+    // `date` is stored as yyyy-MM-dd, so string order is date order.
+    final q = _snapshots
+        .where('date', isLessThanOrEqualTo: toIsoDate(date))
+        .orderBy('date', descending: true)
+        .limit(1);
+    QuerySnapshot<Map<String, dynamic>> res;
+    try {
+      res = await q.get();
+    } catch (_) {
+      // Offline with nothing cached from the server yet.
+      res = await q.get(const GetOptions(source: Source.cache));
+    }
+    if (res.docs.isEmpty) return null;
+    return ValueSnapshot.fromMap(res.docs.first.data());
+  }
 
   @override
   Stream<List<AisStatement>> watchAisStatements() => _ais.snapshots().map(
@@ -153,7 +186,14 @@ class FirestoreRepository implements Repository {
 
 /// Keeps data in memory. Used by tests and the offline demo.
 class InMemoryRepository implements Repository {
-  InMemoryRepository({List<Member>? members, List<Investment>? investments}) {
+  InMemoryRepository({
+    List<Member>? members,
+    List<Investment>? investments,
+    List<ValueSnapshot>? snapshots,
+  }) {
+    for (final s in snapshots ?? const <ValueSnapshot>[]) {
+      _snapshots[s.docId] = s;
+    }
     for (final m in members ?? const <Member>[]) {
       _members[m.id] = m;
     }
@@ -165,6 +205,7 @@ class InMemoryRepository implements Repository {
   final _members = <String, Member>{};
   final _investments = <String, Investment>{};
   final _ais = <String, AisStatement>{};
+  final _snapshots = <String, ValueSnapshot>{};
   final _aisCtrl = StreamController<List<AisStatement>>.broadcast();
   final _memberCtrl = StreamController<List<Member>>.broadcast();
   final _invCtrl = StreamController<List<Investment>>.broadcast();
@@ -175,6 +216,20 @@ class InMemoryRepository implements Repository {
   List<Member> get members => _members.values.toList();
   List<Investment> get investments => _investments.values.toList();
   List<AisStatement> get aisStatements => _ais.values.toList();
+  List<ValueSnapshot> get snapshots => _snapshots.values.toList();
+
+  @override
+  Future<void> saveSnapshot(ValueSnapshot snapshot) async {
+    _snapshots[snapshot.docId] = snapshot;
+  }
+
+  @override
+  Future<ValueSnapshot?> snapshotOnOrBefore(DateTime date) async {
+    final key = toIsoDate(date);
+    final ids = _snapshots.keys.where((k) => k.compareTo(key) <= 0).toList()
+      ..sort();
+    return ids.isEmpty ? null : _snapshots[ids.last];
+  }
 
   @override
   Stream<List<AisStatement>> watchAisStatements() async* {
