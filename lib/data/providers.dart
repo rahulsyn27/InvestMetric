@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart' show ThemeMode;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logic/amfi.dart';
+import '../models/ais.dart';
 import '../models/investment.dart';
 import '../models/member.dart';
 import 'auth_service.dart';
@@ -42,6 +43,12 @@ final investmentsProvider = StreamProvider<List<Investment>>((ref) {
   final repo = ref.watch(repositoryProvider);
   if (repo == null) return const Stream.empty();
   return repo.watchInvestments();
+});
+
+final aisStatementsProvider = StreamProvider<List<AisStatement>>((ref) {
+  final repo = ref.watch(repositoryProvider);
+  if (repo == null) return const Stream.empty();
+  return repo.watchAisStatements();
 });
 
 /// Which member the screens show; null = whole family.

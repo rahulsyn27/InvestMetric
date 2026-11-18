@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import '../models/ais.dart';
 import '../models/investment.dart';
 import '../models/member.dart';
 
@@ -22,6 +23,14 @@ abstract class Repository {
 
   /// Writes many price updates at once.
   Future<void> updatePrices(Map<String, (double price, DateTime date)> byId);
+
+  /// Imported AIS statements (one per member per tax year).
+  Stream<List<AisStatement>> watchAisStatements();
+
+  /// Saves an AIS statement, replacing an earlier import for the same
+  /// member and year.
+  Future<void> saveAisStatement(AisStatement statement);
+  Future<void> deleteAisStatement(String docId);
 }
 
 /// Firestore writes finish when the server confirms them, which can take a
@@ -41,6 +50,23 @@ class FirestoreRepository implements Repository {
       _db.collection('users').doc(uid).collection('members');
   CollectionReference<Map<String, dynamic>> get _investments =>
       _db.collection('users').doc(uid).collection('investments');
+  CollectionReference<Map<String, dynamic>> get _ais =>
+      _db.collection('users').doc(uid).collection('ais');
+
+  @override
+  Stream<List<AisStatement>> watchAisStatements() => _ais.snapshots().map(
+    (s) => s.docs.map((d) => AisStatement.fromMap(d.data())).toList(),
+  );
+
+  @override
+  Future<void> saveAisStatement(AisStatement statement) async {
+    _fire(_ais.doc(statement.docId).set(statement.toMap()));
+  }
+
+  @override
+  Future<void> deleteAisStatement(String docId) async {
+    _fire(_ais.doc(docId).delete());
+  }
 
   @override
   Stream<List<Member>> watchMembers() => _members.snapshots().map((s) {
@@ -75,6 +101,10 @@ class FirestoreRepository implements Repository {
     final batch = _db.batch();
     final owned = await _investments.where('memberId', isEqualTo: id).get();
     for (final d in owned.docs) {
+      batch.delete(d.reference);
+    }
+    final ais = await _ais.where('memberId', isEqualTo: id).get();
+    for (final d in ais.docs) {
       batch.delete(d.reference);
     }
     batch.delete(_members.doc(id));
@@ -134,6 +164,8 @@ class InMemoryRepository implements Repository {
 
   final _members = <String, Member>{};
   final _investments = <String, Investment>{};
+  final _ais = <String, AisStatement>{};
+  final _aisCtrl = StreamController<List<AisStatement>>.broadcast();
   final _memberCtrl = StreamController<List<Member>>.broadcast();
   final _invCtrl = StreamController<List<Investment>>.broadcast();
   var _next = 0;
@@ -142,6 +174,25 @@ class InMemoryRepository implements Repository {
 
   List<Member> get members => _members.values.toList();
   List<Investment> get investments => _investments.values.toList();
+  List<AisStatement> get aisStatements => _ais.values.toList();
+
+  @override
+  Stream<List<AisStatement>> watchAisStatements() async* {
+    yield aisStatements;
+    yield* _aisCtrl.stream;
+  }
+
+  @override
+  Future<void> saveAisStatement(AisStatement statement) async {
+    _ais[statement.docId] = statement;
+    _aisCtrl.add(aisStatements);
+  }
+
+  @override
+  Future<void> deleteAisStatement(String docId) async {
+    _ais.remove(docId);
+    _aisCtrl.add(aisStatements);
+  }
 
   void _emit() {
     _memberCtrl.add(members);
@@ -172,6 +223,8 @@ class InMemoryRepository implements Repository {
   Future<void> deleteMember(String id) async {
     _members.remove(id);
     _investments.removeWhere((_, i) => i.memberId == id);
+    _ais.removeWhere((_, a) => a.memberId == id);
+    _aisCtrl.add(aisStatements);
     _emit();
   }
 

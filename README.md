@@ -27,6 +27,20 @@ the family, in one app.
   whether Form 15G/15H has been submitted.
 - **Calendar.** Maturities, RD instalments, SIP dates, interest payouts and tax deadlines
   (advance tax, ITR, 31 March).
+- **AIS import.** Pick the AIS PDF from the income tax portal. The password (PAN in small letters
+  + date of birth DDMMYYYY) is filled in from the member's profile. The app reads:
+  - TDS/TCS by source (salary, interest and others)
+  - SFT information
+  - advance and self-assessment tax paid
+  - refunds
+
+  It then compares each bank's reported interest with what that member's deposits should have
+  earned up to the same date, and flags:
+  - mismatches
+  - deposits that are missing in the app
+  - banks that haven't reported yet
+
+  The PDF and password never leave the phone. Only the amounts are saved.
 - **Free mutual fund prices.** Tap refresh on Holdings to pull today's NAVs from AMFI's public file.
   There's no server and no cost. Stock prices are updated by hand.
 - **Themes.** Dark navy theme by default, plus light and auto modes.
@@ -37,9 +51,9 @@ update after a Budget.
 ## Roadmap
 
 - **Phase 2:**
-  - Import AIS (JSON) and match the TDS banks actually reported.
   - Import the mutual fund CAS PDF.
   - Import from Excel/CSV.
+  - (AIS PDF import is done.)
 - **Phase 3:**
   - Capital gains (short-term vs long-term, the ₹1.25 lakh exemption).
   - XIRR from transactions.
@@ -108,6 +122,13 @@ Data is stored in Firestore like this:
 users/{uid}/members/{memberId}          name, relation, email, PAN, date of birth
 users/{uid}/investments/{investmentId}  one document per FD / fund / account
 ```
+
+## Licences
+
+PDFs are read with [`syncfusion_flutter_pdf`](https://pub.dev/packages/syncfusion_flutter_pdf),
+which is free under the Syncfusion **Community License** for individuals and small organisations
+(under $1M revenue). Register for it at <https://www.syncfusion.com/products/communitylicense>.
+The Manrope font is under the SIL Open Font License (`assets/fonts/OFL.txt`).
 
 ## Notes
 

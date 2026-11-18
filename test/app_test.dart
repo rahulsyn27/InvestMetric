@@ -7,7 +7,16 @@ import 'package:invest_tracker/models/investment.dart';
 import 'package:invest_tracker/models/member.dart';
 import 'package:invest_tracker/ui/home_shell.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:invest_tracker/ui/ais_import_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:invest_tracker/logic/ais_parser.dart';
+import 'package:invest_tracker/logic/ais_pdf.dart';
+
+import 'support/ais_fixture.dart';
+
+AisParseResult readAisForTest() =>
+    readAisPdf(buildAisFixturePdf(), password: fixturePassword);
 
 InMemoryRepository sampleRepo() => InMemoryRepository(
   members: [
@@ -100,9 +109,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Show tax deadlines'), findsOneWidget);
 
-    await tester.tap(find.text('Interest').last);
+    await tester.tap(find.text('Tax').last);
     await tester.pumpAndSettle();
-    expect(find.text('Interest & TDS'), findsOneWidget);
+    expect(find.text('Tax & TDS'), findsOneWidget);
     expect(find.text('SBI'), findsOneWidget);
     expect(find.textContaining('SENIOR CITIZEN'), findsOneWidget);
 
@@ -189,5 +198,80 @@ void main() {
     expect(added.memberId, 'mom');
     expect(added.currentValue, 260000);
     expect(find.text('Portfolio'), findsOneWidget);
+  });
+
+  testWidgets('importing an AIS PDF', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    final repo = InMemoryRepository(
+      members: [
+        Member(
+          id: 'mom',
+          name: 'Asha Kumar',
+          relation: 'Mother',
+          pan: 'ABCDE1234F',
+          dateOfBirth: DateTime(1960, 1, 1),
+        ),
+      ],
+    );
+    final pdf = buildAisFixturePdf();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          repositoryProvider.overrideWithValue(repo),
+          currentUserProvider.overrideWithValue(null),
+          todayProvider.overrideWithValue(DateTime(2026, 11, 18)),
+        ],
+        child: InvestTrackerApp(
+          home: AisImportScreen(pickFile: () async => ('AIS.pdf', pdf)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Choose AIS PDF'));
+    await tester.pumpAndSettle();
+    expect(find.text('AIS.pdf'), findsOneWidget);
+    // Password was filled in from PAN + date of birth.
+    expect(
+      find.text('Filled in from their PAN and date of birth'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Read AIS'));
+    await tester.pumpAndSettle();
+    expect(find.text('Found in AIS · 2026-27'), findsOneWidget);
+    expect(find.text('ACME STEEL LIMITED'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Save AIS for 2026-27'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Save AIS for 2026-27'));
+    await tester.pumpAndSettle();
+    expect(repo.aisStatements, hasLength(1));
+    expect(repo.aisStatements.single.memberId, 'mom');
+    expect(repo.aisStatements.single.totalTds, 17483 + 16803 + 1775);
+  });
+
+  testWidgets('Tax tab shows the imported AIS', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    final repo = sampleRepo();
+    await tester.pumpWidget(testApp(repo));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tax').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Check against AIS'), findsOneWidget);
+
+    await repo.saveAisStatement(readAisForTest().toStatement('mom'));
+    await tester.pumpAndSettle();
+    expect(find.text('AIS · ASHA KUMAR'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Interest: app vs AIS'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Interest: app vs AIS'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

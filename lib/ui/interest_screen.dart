@@ -6,7 +6,11 @@ import '../core/money.dart';
 import '../core/tax_rules.dart';
 import '../data/providers.dart';
 import '../logic/interest_report.dart';
+import '../models/ais.dart';
+import '../models/investment.dart';
 import '../models/member.dart';
+import 'ais_import_screen.dart';
+import 'ais_section.dart';
 import '../theme/app_theme.dart';
 import 'widgets/common.dart';
 
@@ -39,9 +43,33 @@ class _InterestScreenState extends ConsumerState<InterestScreen> {
     }
     final t = Theme.of(context).textTheme;
     final c = context.colors;
+    final selected = ref.watch(selectedMemberProvider);
+    final allInvestments =
+        ref.watch(investmentsProvider).value ?? const <Investment>[];
+    final statements =
+        (ref.watch(aisStatementsProvider).value ?? const <AisStatement>[])
+            .where(
+              (s) =>
+                  s.year == year &&
+                  (selected == null || s.memberId == selected),
+            )
+            .toList();
+
+    void openImport() => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => AisImportScreen(memberId: selected)),
+    );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Interest & TDS')),
+      appBar: AppBar(
+        title: const Text('Tax & TDS'),
+        actions: [
+          IconButton(
+            tooltip: 'Import AIS',
+            onPressed: openImport,
+            icon: const Icon(Icons.upload_file_outlined),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           const MemberFilterBar(),
@@ -140,14 +168,37 @@ class _InterestScreenState extends ConsumerState<InterestScreen> {
                     ),
                   ),
                 ],
+                for (final st in statements) ...[
+                  const SizedBox(height: 18),
+                  AisSection(
+                    statement: st,
+                    member: membersById[st.memberId],
+                    investments: allInvestments,
+                    today: today,
+                  ),
+                ],
                 const SizedBox(height: 18),
                 SectionCard(
-                  title: 'Coming next: AIS import',
-                  child: Text(
-                    'Download your AIS (JSON) from the income tax portal and import it. '
-                    'The app will match the TDS banks actually reported against these numbers '
-                    'and flag any difference.',
-                    style: t.bodyMedium?.copyWith(color: c.muted),
+                  title: statements.isEmpty
+                      ? 'Check against AIS'
+                      : 'Update AIS',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        statements.isEmpty
+                            ? 'Import the AIS PDF from the income tax portal to see the TDS '
+                                  'actually reported for ${year.label} and check it against your deposits.'
+                            : 'AIS fills in every quarter. Import a fresh copy to update these numbers.',
+                        style: t.bodyMedium?.copyWith(color: c.muted),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: openImport,
+                        icon: const Icon(Icons.upload_file_outlined),
+                        label: const Text('Import AIS PDF'),
+                      ),
+                    ],
                   ),
                 ),
               ],

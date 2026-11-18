@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "168978417222",
+    "project_id": "investmetric",
+    "storage_bucket": "investmetric.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:168978417222:android:6fc8fc231896ea4ba5ac47",
+        "android_client_info": {
+          "package_name": "com.investmetric.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "168978417222-sgnpg9i92q2qe25ppbm309fjgunm4mc5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCTmeoFl5BNkzm0rs08RGfnXAatqusGdI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "168978417222-sgnpg9i92q2qe25ppbm309fjgunm4mc5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -51,7 +51,7 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long_rounded),
-            label: 'Interest',
+            label: 'Tax',
           ),
           NavigationDestination(
             icon: Icon(Icons.people_outline),
