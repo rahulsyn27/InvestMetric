@@ -1,4 +1,4 @@
-package `in`.investtrack.invest_tracker
+package com.investmetric.app
 
 import io.flutter.embedding.android.FlutterActivity
 

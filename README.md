@@ -59,46 +59,34 @@ flutter test
 
 The app won't start until Firebase is connected, as described below.
 
-## Connect Firebase (one time, about 15 minutes)
+## Connect Firebase (one time)
 
-1. **Create the project.** Go to <https://console.firebase.google.com> and click **Add project**.
-   Google Analytics isn't needed.
-2. **Turn on Google login.** Go to **Build → Authentication → Get started → Sign-in method** and
-   enable **Google**.
-3. **Create the database.** Go to **Build → Firestore Database → Create database**, pick a location
-   in India (`asia-south1`, Mumbai) and choose **production mode**.
-4. **Add the security rules.** Open the **Rules** tab, paste in the contents of
-   [`firestore.rules`](firestore.rules), and click **Publish**. These rules mean each account can
-   only see its own data.
-5. **Link the app to Firebase.** Run these from this folder. They create `lib/firebase_options.dart`
-   and `android/app/google-services.json`, and add the Google Services Gradle plugin:
+The Firebase project is **investmetric**. The Android app id is **`com.investmetric.app`**.
 
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   dart pub global activate flutterfire_cli
-   flutterfire configure --platforms=android,ios
-   ```
+1. **Authentication → Get started → Sign-in method → Google → Enable.** Pick a support email and
+   save.
+2. **Firestore Database → Create database.** Pick location `asia-south1` (Mumbai) and **production
+   mode**. Then open the **Rules** tab, paste in [`firestore.rules`](firestore.rules), and click
+   **Publish**.
+3. **Project settings (gear icon) → General → Your apps → Add app → Android:**
+   - Android package name: `com.investmetric.app`
+   - App nickname: `InvestMetric Android`
+   - Debug signing certificate SHA-1: `79:A7:0E:86:16:A4:74:F9:85:4C:26:8C:E1:27:C2:51:C7:F9:6E:15`
+4. Click **Register app** and download **`google-services.json`**.
+5. In the same app's settings, click **Add fingerprint** and add the SHA-256:
+   `DD:BC:37:E2:32:36:82:F4:E6:4C:B6:D9:67:29:25:7B:0B:48:FA:95:85:CE:BB:23:00:55:5B:9D:33:C9:36:29`
+6. Download `google-services.json` again, now that both fingerprints are added. Generate
+   `lib/firebase_options.dart` from it, either with `flutterfire configure` or by hand: it needs the
+   API key, app id, sender id and project id from the JSON. Set `kGoogleServerClientId` in
+   `lib/data/auth_service.dart` to the `client_id` of the `client_type: 3` entry.
 
-6. **Allow Google login from your computer's build.** Get the signing fingerprints:
+**About the SHA-1:** it comes from `android/app/debug.keystore`. This debug key is shared through
+the repo on purpose, so Google sign-in works from any computer without registering a new
+fingerprint. Before publishing to the Play Store, create a separate release key, keep it out of
+git, and add its SHA-1 as well.
 
-   ```bash
-   cd android && ./gradlew signingReport
-   ```
-
-   Copy the `SHA1` and `SHA-256` of the `debug` variant. In Firebase, open **Project settings →
-   Your apps → Android app → Add fingerprint** and add both. Then run `flutterfire configure` again
-   so the updated `google-services.json` is downloaded.
-7. **Start the app** with your phone connected:
-
-   ```bash
-   flutter run
-   ```
-
-If Google login fails with `DEVELOPER_ERROR` or code 10, the SHA-1 from step 6 is missing or
-wrong. If it still fails, copy the **Web client ID** from Authentication → Sign-in method → Google →
-Web SDK configuration into `kGoogleServerClientId` in
-[`lib/data/auth_service.dart`](lib/data/auth_service.dart).
+If Google login fails with `DEVELOPER_ERROR` or code 10, check the SHA-1 above and the server
+client id.
 
 ## Code layout
 

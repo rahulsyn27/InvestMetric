@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# The project-wide debug key is shared on purpose (see README). Release keys must never be committed.
+!app/debug.keystore
