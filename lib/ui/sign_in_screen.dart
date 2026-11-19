@@ -57,25 +57,27 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 2),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.5),
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/logo/logo.png',
+                      width: 56,
+                      height: 56,
+                      semanticLabel: 'InvestMetric logo',
                     ),
                   ),
-                  child: Icon(
-                    Icons.account_balance_wallet_outlined,
-                    color: scheme.primary,
-                    size: 30,
+                  const SizedBox(width: 14),
+                  Text(
+                    'InvestMetric',
+                    style: t.titleLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                    ),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 28),
               Text(

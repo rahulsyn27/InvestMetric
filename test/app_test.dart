@@ -8,6 +8,7 @@ import 'package:invest_tracker/models/investment.dart';
 import 'package:invest_tracker/models/member.dart';
 import 'package:invest_tracker/models/snapshot.dart';
 import 'package:invest_tracker/ui/home_shell.dart';
+import 'package:invest_tracker/ui/sign_in_screen.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:invest_tracker/ui/ais_import_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,6 +89,18 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   returnsTests();
+
+  testWidgets('sign-in screen shows the logo and name', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    await tester.pumpWidget(
+      const ProviderScope(child: InvestTrackerApp(home: SignInScreen())),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('InvestMetric'), findsOneWidget);
+    expect(find.bySemanticsLabel('InvestMetric logo'), findsOneWidget);
+    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('home shows totals and upcoming dates', (tester) async {
     await tester.binding.setSurfaceSize(const Size(400, 1800));

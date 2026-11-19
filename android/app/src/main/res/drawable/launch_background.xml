@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Deep navy splash so the dark app doesn't flash white on start. -->
+<!-- Deep navy splash with the logo, so the dark app doesn't flash white on start. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <color android:color="#FF0B1428" />
+    </item>
+    <item>
+        <bitmap android:gravity="center" android:src="@drawable/splash_logo" />
     </item>
 </layer-list>
