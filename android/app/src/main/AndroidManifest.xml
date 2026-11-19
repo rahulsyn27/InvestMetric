@@ -2,7 +2,7 @@
     <!-- Needed to reach Firebase and download fund prices. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="Invest Tracker"
+        android:label="InvestMetric"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

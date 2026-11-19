@@ -45,7 +45,7 @@ It is built for general use. Any family can use it, not just one person.
 | Theme | **Dark, deep navy, classy**, with a champagne-gold accent. Dark is the default; light and auto are also available. |
 | AIS | The AIS **JSON** download is **encrypted** (an undocumented format for the portal's own offline tool), so it isn't used. The app imports the **AIS PDF** instead. Its password is the PAN in lower case + date of birth as DDMMYYYY, and the app fills it in from the member's profile. |
 | Privacy | The AIS PDF and its password never leave the phone. Only the extracted amounts are saved. Firestore rules allow each user to read and write only `users/{their uid}/…`. |
-| App id | `com.investmetric.app`, display name "Invest Tracker" (can be renamed later) |
+| App id | `com.investmetric.app`, display name **"InvestMetric"** (the Dart package is still `invest_tracker`) |
 | Repository | GitHub **`rahulsyn27/InvestMetric`** (keep it **private**) |
 
 ---
@@ -155,6 +155,18 @@ test/
   support/ais_fixture.dart  generator for the fake AIS PDF (made-up data)
 firestore.rules           per-user security rules
 docs/screenshots/         app screenshots (dark theme)
+docs/logo/                the logo source, investmetric-icon.svg
+tool/make_icons.py        renders launcher icons, splash logo and assets/logo/logo.png
+                          from the SVG (needs Chrome + Pillow)
+```
+
+### Logo
+
+Three rising gold bars with a trend line ending in a node above the tallest bar, on navy. After editing
+`docs/logo/investmetric-icon.svg`, run:
+
+```bash
+python3 tool/make_icons.py
 ```
 
 ### Firestore data
