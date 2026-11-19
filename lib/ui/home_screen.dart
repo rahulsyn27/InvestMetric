@@ -13,6 +13,7 @@ import 'calendar_screen.dart';
 import 'home_shell.dart';
 import 'investment_form_screen.dart';
 import 'widgets/common.dart';
+import 'widgets/returns_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key, required this.onOpenTab});
@@ -88,6 +89,11 @@ class HomeScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _HeroCard(total: total, count: active.length),
+              ),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ReturnsCard(items: active),
               ),
               const SizedBox(height: 14),
               Padding(

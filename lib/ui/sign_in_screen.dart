@@ -57,21 +57,24 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 2),
-              Container(
-                width: 64,
-                height: 64,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: scheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: scheme.primary.withValues(alpha: 0.5),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.5),
+                    ),
                   ),
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_outlined,
-                  color: scheme.primary,
-                  size: 30,
+                  child: Icon(
+                    Icons.account_balance_wallet_outlined,
+                    color: scheme.primary,
+                    size: 30,
+                  ),
                 ),
               ),
               const SizedBox(height: 28),

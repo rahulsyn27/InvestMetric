@@ -1,4 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../data/providers.dart';
 
 import 'calendar_screen.dart';
 import 'family_screen.dart';
@@ -6,20 +9,22 @@ import 'holdings_screen.dart';
 import 'home_screen.dart';
 import 'interest_screen.dart';
 
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
 
   void _go(int i) => setState(() => _index = i);
 
   @override
   Widget build(BuildContext context) {
+    // Keeps today's value snapshot up to date (for returns by period).
+    ref.watch(snapshotRecorderProvider);
     final pages = [
       HomeScreen(onOpenTab: _go),
       const HoldingsScreen(),
